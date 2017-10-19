@@ -27,14 +27,72 @@ function createInterface() {
   text.append(limitSelect.$element);
   text.append(submit.$element.click(function(){submit.setDisabled(true); makeList();}));
   
-  function addFromCat() {
+  function addFromCat(cont) {
     var val = catInput.getField().value;
-    alert("Added users from category: " + val);
+    var query = {
+      action: 'query',
+      format: 'json',
+      list: 'categorymembers',
+      cmtitle: val,
+      cmprop: 'title',
+      cmnamespace: 2,
+      cmlimit: 500,
+    }
+    if( cont ) {
+      query.continue = cont.continue;
+      query.cmcontinue = cont.cmcontinue;
+    }
+    $.getJSON(mw.util.wikiScript('api'), query).done(function(data) {
+      var pages = data.query.categorymembers, users = [];
+      for( var i = 0; i < pages.length; i++ ) {
+        users.push(pages[i].title.slice(pages[i].title.indexOf(':') + 1));
+      }
+      nameInput.setValue(nameInput.value + (nameInput.value.length === 0 ? '' : '\n') + users.join('\n'));
+      if( data.continue ) {
+        addFromCat( data.continue );
+      } else {
+        alert("Added users from category: " + val);
+      }
+    });
   }
   
-  function makeList() {
-    if( limitSelect.getField().value === '0' && !confirm("You have set the limit to all. Do you wish to procede? (This could take very long time)") )
-      return submit.setDisabled(false);
-    text.html('<p id="patience-plz">Fetching list, please be patient (this may take a while).</p>');
+  function makeList(cont, users, limit) {
+    if( !users ) {
+      if( limitSelect.getField().value === '0' && !confirm("You have set the limit to all. Do you wish to procede? (This could take very long time)") )
+        return submit.setDisabled(false);
+      users = nameInput.value.split('\n');
+      users.reverse();
+      limit = limitSelect.getField().value;
+      text.html('<p id="patience-plz">Fetching list, please be patient (this may take a while).</p><pre id="ca-list"></pre>');
+    }
+    var query = {
+      action: 'query',
+      format: 'json',
+      list: 'usercontribs',
+      uclimit: 500,
+      ucshow: 'new',
+      ucprop: 'title',
+      ucnamespace: 0,
+    };
+    if( cont ) {
+      query.ucuser = cont.user;
+      query.continue = cont.continue;
+      query.uccontinue = cont.uccontnue;
+    } else {
+      query.ucuser = users.pop();
+    }
+    $.getJSON( mw.util.wikiScript('api'), query).done(function(data) {
+      var tribs = data.query.usercontribs, titles = [];
+      for( var i = 0; i < tribs.length && limit > 0; i++ ) {
+        $('#ca-list').append(tribs[i].title + '\n');
+        limit--;
+      }
+      if( limit > 0 && data.query.continue ) {
+        data.query.continue.user = tribs[0].user;
+        makeList(data.query.continue, users, limit);
+      } else if ( limit > 0 && users.lenght > 0 ) {
+        makeList(null, users, limit);
+      }
+    } );
   }
 }
