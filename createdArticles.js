@@ -1,4 +1,5 @@
-// for getting all the articles created by a set of users
+// Script designed to find all pages created by a large set of users. You can add a whole category of users in at once.
+// To activate, go to [[Special:CreatedArticles]]
 
 if( mw.config.get('wgNamespaceNumber') === -1 && /Special:[Cc]reated[Aa]rticles/.test(mw.config.get('wgPageName')) ) {
   mw.loader.using( ['oojs-ui', 'mediawiki.util'] ).then( function() {
@@ -37,7 +38,7 @@ function createInterface() {
       cmprop: 'title',
       cmnamespace: 2,
       cmlimit: 500,
-    }
+    };
     if( cont ) {
       query.continue = cont.continue;
       query.cmcontinue = cont.cmcontinue;
@@ -62,7 +63,7 @@ function createInterface() {
         return submit.setDisabled(false);
       users = nameInput.value.split('\n');
       users.reverse();
-      limit = limitSelect.getField().value;
+      limit = limitSelect.getField().value === '0' ? Infinity : limitSelect.getField().value;
       text.html('<p id="patience-plz">Fetching list, please be patient (this may take a while).</p><pre id="ca-list"></pre>');
     }
     var query = {
@@ -90,8 +91,10 @@ function createInterface() {
       if( limit > 0 && data.query.continue ) {
         data.query.continue.user = tribs[0].user;
         makeList(data.query.continue, users, limit);
-      } else if ( limit > 0 && users.lenght > 0 ) {
+      } else if ( limit > 0 && users.length > 0 ) {
         makeList(null, users, limit);
+      } else {
+      	$('#patience-plz').remove();
       }
     } );
   }
