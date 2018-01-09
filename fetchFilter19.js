@@ -37,7 +37,7 @@ function pruneLocked(users, ids, pos) {
 		action: 'query', format: 'json', list: 'globalallusers', agufrom: users[pos], agulimit: 1, aguprop: 'lockinfo'
 	}).done( function( data ) {
 		if( typeof data.query.globalallusers[0].locked != 'undefined' ) {
-			console.log(users.pop(pos));
+			users.pop(pos);
 			ids.pop(pos);
 		} else
 			pos++;
@@ -49,7 +49,6 @@ function pruneLocked(users, ids, pos) {
 }
 
 function createDisplay(userlist, logids) {
-	console.log('Doin a display');
 	text = $('#mw-content-text');
 	text.html('<table class="wikitable"><thead><tr><th>User</th><th>Log</th></tr></thead><tbody id="ca-list"></tbody></table>');
 	for(var i = 0; i < userlist.length; i++) {
