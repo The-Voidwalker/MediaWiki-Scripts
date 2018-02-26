@@ -1,6 +1,6 @@
 // Not technically for use in MW but.....
 function find(wikitxt) {
-  var text = $('pre').innerText();
+  var text = $('pre').innerText;
   var wikis = [];
   var included = [];
   if(wikitxt.lastIndexOf("|") + 1 != wikitxt.length)
