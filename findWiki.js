@@ -1,4 +1,7 @@
 // Not technically for use in MW but.....
+// Use: Using GitHub raw text of a file, paste the script into dev tools.
+// Then, with a list of wiki names (including the -wiki suffix) separated by the "|" character
+// Run find("list")
 function find(wikitxt) {
   var text = $('pre').innerText;
   var wikis = [];
