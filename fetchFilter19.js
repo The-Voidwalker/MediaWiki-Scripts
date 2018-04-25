@@ -27,25 +27,9 @@ function fetch(cont, userlist, idlist) {
 		if( data.continue ) {
 			fetch( data.continue, users, ids );
 		} else {
-			pruneLocked(users, ids, 0);
+			createDisplay(users, ids);
 		}
 	} );
-}
-
-function pruneLocked(users, ids, pos) {
-	$.getJSON(mw.util.wikiScript('api'), {
-		action: 'query', format: 'json', list: 'globalallusers', agufrom: users[pos], agulimit: 1, aguprop: 'lockinfo'
-	}).done( function( data ) {
-		if( typeof data.query.globalallusers[0].locked != 'undefined' ) {
-			users.pop(pos);
-			ids.pop(pos);
-		} else
-			pos++;
-		if(pos == users.length)
-			createDisplay(users, ids);
-		else
-			pruneLocked(users, ids, pos);
-	});
 }
 
 function createDisplay(userlist, logids) {
