@@ -15,21 +15,33 @@ function fetch(cont, userlist, idlist) {
 		users = users.concat(userlist);
 		ids = ids.concat(idlist);
 	}
+	var count = 0;
 	$.getJSON( mw.util.wikiScript('api'), query ).done( function( data ) {
 		var logs = data.query.abuselog;
 		for(var i = 0; i < logs.length; i++) {
 			var log = logs[i];
-			if(!users.includes(log.user)) {
-				users.push(log.user);
-				ids.push(log.id);
-			}
-		}
-		if( data.continue ) {
-			fetch( data.continue, users, ids );
-		} else {
-			createDisplay(users, ids);
+			checkU( log.user, log.id, logs.length - 1 );
 		}
 	} );
+	function checkU( user, id, final ) {
+		$.getJSON( mw.util.wikiScript('api'), {
+			format: 'json',
+			action: 'query',
+			list: 'globalallusers',
+			agufrom: user,
+			aguprop: 'lockinfo',
+			agulimit: 1
+		} ).done( function( data ) {
+			if( !users.includes( user ) && data.query.globalallusers[0].locked != '' ) {
+				users.push( user );
+				ids.push( id );
+			}
+			count++;
+			if( count == final ) {
+				createDisplay(users, ids);
+			}
+		} );
+	}
 }
 
 function createDisplay(userlist, logids) {
